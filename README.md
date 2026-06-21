@@ -35,13 +35,13 @@ kubectl get all,ingress,cm,secret,pvc
 4) Call API:
 
 ```bash
-curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients
+curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients
 ```
 
 ### Demo checklist (for screen recording)
 
 - Show all objects running: `kubectl get all,ingress,hpa,pvc`
-- API call: `curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients`
+- API call: `curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients`
 - Self-healing: delete one API pod and show it recreates:
   - `kubectl delete pod -l app.kubernetes.io/component=api`
 - DB recovery + persistence: delete DB pod and show data remains:

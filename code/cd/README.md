@@ -50,6 +50,6 @@ helm upgrade --install client-stack ./helm/client-stack
 Then:
 
 ```bash
-curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients | jq .
+curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients | jq .
 ```
 

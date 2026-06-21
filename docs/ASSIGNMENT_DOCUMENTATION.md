@@ -9,8 +9,8 @@
    4. [Submission doc](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/docs/ASSIGNMENT_DOCUMENTATION.md)
 2. [Entire Assignment](https://github.com/ng-aditya/assignment-1-devfinops)
 3. [Docker image](https://hub.docker.com/r/ngaditya1/ng-a1-service-api)
-4. [Service API url](http://127.0.0.1:9090/api/service/clients)
-   1. `curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients`
+4. [Service API url](http://localhost:9090/api/service/clients)
+   1. `curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients`
 
 ## Requirement understanding
 
@@ -143,7 +143,7 @@ Rationale:
 docker build -f code/ci/Dockerfile -t ngaditya1/ng-a1-service-api:1.0.0 code/source --load
 ```
 
-### Load image into kind node
+### Load image into kind node (if docker hub is not accessible)
 
 ```bash
 kind load docker-image ngaditya1/ng-a1-service-api:1.0.0 --name kind-cluster
@@ -216,7 +216,7 @@ kubectl run curltest --rm -i --restart=Never --image=curlimages/curl:8.11.0 --co
 - External (kind host mapping):
 
 ```bash
-curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients
+curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients
 ```
 
 ---
@@ -226,7 +226,7 @@ curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients
 1) Show objects running:
    - `kubectl get all,ingress,hpa,pvc`
 2) API call retrieves DB records:
-   - `curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients`
+   - `curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients`
 3) Self-healing (API):
    - `kubectl delete pod -l app.kubernetes.io/component=api`
 4) Self-healing + persistence (DB):
