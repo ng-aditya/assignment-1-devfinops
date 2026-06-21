@@ -252,7 +252,7 @@ kubectl describe hpa client-stack-api
 
 ---
 
-## Demo checklist (for recording later)
+## Demo checklist
 
 1) Show objects running:
    - `kubectl get all,ingress,hpa,pvc`
