@@ -221,6 +221,37 @@ curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients
 
 ---
 
+## Metrics-server (for HPA + `kubectl top`)
+
+HPA requires the Kubernetes Metrics API. On local clusters like **kind**, install `metrics-server` and patch it to scrape kubelets reliably.
+
+### Install
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
+
+### Patch for kind
+
+```bash
+kubectl -n kube-system patch deploy metrics-server --type='json' -p='[
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"},
+  {"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP"}
+]'
+kubectl -n kube-system rollout status deploy/metrics-server --timeout=180s
+```
+
+### Validate
+
+```bash
+kubectl top nodes
+kubectl top pods
+kubectl get hpa
+kubectl describe hpa client-stack-api
+```
+
+---
+
 ## Demo checklist (for recording later)
 
 1) Show objects running:
