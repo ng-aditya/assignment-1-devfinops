@@ -1,3 +1,17 @@
+## Deliverables
+
+1. Assignment
+   1. Deployment
+      1. [Kubernetes manifests](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/code/cd/k8s/client-stack.all.yaml)
+      2. [Helm chart](https://github.com/ng-aditya/assignment-1-devfinops/tree/main/code/cd/helm/client-stack)
+   2. [Dockerfile](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/code/ci/Dockerfile)
+   3. [Source Code](https://github.com/ng-aditya/assignment-1-devfinops/tree/main/code/source)
+   4. [Submission doc](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/docs/ASSIGNMENT_DOCUMENTATION.md)
+2. [Entire Assignment](https://github.com/ng-aditya/assignment-1-devfinops)
+3. [Docker image](https://hub.docker.com/r/ngaditya1/ng-a1-service-api)
+4. [Service API url](http://127.0.0.1:9090/api/service/clients)
+   1. `curl -H 'Host: client-api.local' http://127.0.0.1:9090/api/service/clients`
+
 ## Requirement understanding
 
 Build and deploy a 2-tier system on Kubernetes:
