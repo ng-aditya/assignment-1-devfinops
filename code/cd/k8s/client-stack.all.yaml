@@ -1,0 +1,243 @@
+---
+# Source: client-stack/templates/api-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: client-stack-api
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+data:
+  DB_HOST: "client-stack-postgres"
+  DB_PORT: "5432"
+  DB_NAME: "clientsdb"
+  DB_USER: "clientsapp"
+  DB_POOL_MAX_SIZE: "20"
+  DB_POOL_MIN_SIZE: "2"
+---
+# Source: client-stack/templates/postgres-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: client-stack-postgres
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+data:
+  POSTGRES_DB: "clientsdb"
+  POSTGRES_USER: "clientsapp"
+---
+# Source: client-stack/templates/api-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-stack-api
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/component: api
+    app.kubernetes.io/instance: client-stack
+---
+# Source: client-stack/templates/postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: client-stack-postgres
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+spec:
+  type: ClusterIP
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  selector:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/component: postgres
+    app.kubernetes.io/instance: client-stack
+---
+# Source: client-stack/templates/api-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-stack-api
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+    app.kubernetes.io/component: api
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: client-stack
+      app.kubernetes.io/component: api
+      app.kubernetes.io/instance: client-stack
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: client-stack
+        app.kubernetes.io/component: api
+        app.kubernetes.io/instance: client-stack
+    spec:
+      containers:
+        - name: api
+          image: "localhost/ngaditya1/ng-a1-service-api:1.0.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: client-stack-api
+            - secretRef:
+                name: "client-stack-api"
+          readinessProbe:
+            httpGet:
+              path: /api/service/q/health/ready
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /api/service/q/health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 2
+          resources:
+            limits:
+              cpu: 50m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 64Mi
+---
+# Source: client-stack/templates/api-hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: client-stack-api
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+    app.kubernetes.io/component: api
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: client-stack-api
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+# Source: client-stack/templates/postgres-statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: client-stack-postgres
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+    app.kubernetes.io/component: postgres
+spec:
+  serviceName: client-stack-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: client-stack
+      app.kubernetes.io/component: postgres
+      app.kubernetes.io/instance: client-stack
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: client-stack
+        app.kubernetes.io/component: postgres
+        app.kubernetes.io/instance: client-stack
+    spec:
+      containers:
+        - name: postgres
+          image: "postgres:16"
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - configMapRef:
+                name: client-stack-postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "client-stack-postgres"
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: pgdata
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: "1Gi"
+---
+# Source: client-stack/templates/api-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: client-stack-api
+  labels:
+    app.kubernetes.io/name: client-stack
+    app.kubernetes.io/instance: client-stack
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: client-stack-0.1.0
+    app.kubernetes.io/component: api
+spec:
+  ingressClassName: "nginx"
+  rules:
+    - host: "client-api.local"
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: client-stack-api
+                port:
+                  number: 80

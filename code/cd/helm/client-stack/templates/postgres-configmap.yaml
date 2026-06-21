@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "client-stack.fullname" . }}-postgres
+  labels:
+    {{- include "client-stack.labels" . | nindent 4 }}
+data:
+  POSTGRES_DB: {{ .Values.postgres.database | quote }}
+  POSTGRES_USER: {{ .Values.postgres.username | quote }}
+

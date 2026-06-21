@@ -1,0 +1,15 @@
+# Allow building images from source context.
+# Default ignore to keep context small, then explicitly include what the Dockerfile needs.
+*
+
+!.dockerignore
+!build.gradle.kts
+!settings.gradle.kts
+!gradle.properties
+!gradlew
+!gradlew.bat
+!gradle/**
+!src/**
+
+# Explicitly ignore build outputs even if present locally
+build/**

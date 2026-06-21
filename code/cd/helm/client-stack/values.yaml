@@ -1,0 +1,49 @@
+nameOverride: ""
+fullnameOverride: ""
+
+api:
+  image:
+    repository: "ngaditya1/ng-a1-service-api"
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  replicas: 4
+  service:
+    port: 8080
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 50m
+      memory: 128Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 60
+
+secrets:
+  # Assignment requirement: do not store DB passwords in plaintext YAML.
+  # Recommended: create Kubernetes Secrets via `kubectl create secret ...` and set create=false.
+  create: false
+  apiSecretName: "client-stack-api"
+  postgresSecretName: "client-stack-postgres"
+
+ingress:
+  enabled: true
+  className: nginx
+  host: client-api.local
+  path: /
+  pathType: Prefix
+
+postgres:
+  image: postgres:16
+  database: clientsdb
+  username: clientsapp
+  # Password is stored in a Kubernetes Secret; provide here for helm to template it.
+  #password: "clientsapp"
+  storage:
+    size: 1Gi
+  service:
+    port: 5432
+

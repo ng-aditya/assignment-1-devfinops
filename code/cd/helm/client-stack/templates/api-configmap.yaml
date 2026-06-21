@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "client-stack.fullname" . }}-api
+  labels:
+    {{- include "client-stack.labels" . | nindent 4 }}
+data:
+  DB_HOST: {{ printf "%s-postgres" (include "client-stack.fullname" .) | quote }}
+  DB_PORT: {{ .Values.postgres.service.port | quote }}
+  DB_NAME: {{ .Values.postgres.database | quote }}
+  DB_USER: {{ .Values.postgres.username | quote }}
+  DB_POOL_MAX_SIZE: "20"
+  DB_POOL_MIN_SIZE: "2"
+
