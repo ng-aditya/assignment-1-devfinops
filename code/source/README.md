@@ -1,88 +1,63 @@
-# client-api
+## DevFinOps Assignment (Kubernetes + DevOps + FinOps)
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+### Repo layout
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+- `code/source`: Quarkus REST API (Java, virtual threads) + Flyway migrations
+- `code/ci`: container build instructions (Podman/Docker)
+- `code/cd`: Kubernetes delivery assets (Helm chart/K8s manifests + kind ingress notes)
 
-## Running the application in dev mode
+### API behavior
 
-You can run your application in dev mode that enables live coding using:
+- `GET /api/service/clients` returns a JSON array of client records persisted in Postgres.
+- Schema + seed data are created by **Flyway** on service startup.
 
-```shell script
-./gradlew quarkusDev
+### Kubernetes/Helm (one-command deploy)
+
+Chart: `code/cd/helm/client-stack`
+
+Rendered YAML (for clarity): `code/cd/k8s/client-stack.all.yaml`
+
+1) Build & push API image (update repo/tag in Helm `values.yaml`):
+
+See `code/ci/README.md`.
+
+2) Create kind cluster and install ingress-nginx:
+
+See `code/cd/README.md`.
+
+3) Install:
+
+```bash
+helm upgrade --install client-stack ./code/cd/helm/client-stack
+kubectl get all,ingress,cm,secret,pvc
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+4) Call API:
 
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./gradlew build
+```bash
+curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients
 ```
 
-It produces the `quarkus-run.jar` file in the `build/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `build/quarkus-app/lib/` directory.
+### Demo checklist (for screen recording)
 
-The application is now runnable using `java -jar build/quarkus-app/quarkus-run.jar`.
+- Show all objects running: `kubectl get all,ingress,hpa,pvc`
+- API call: `curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients`
+- Self-healing: delete one API pod and show it recreates:
+  - `kubectl delete pod -l app.kubernetes.io/component=api`
+- DB recovery + persistence: delete DB pod and show data remains:
+  - `kubectl delete pod -l app.kubernetes.io/component=postgres`
+  - re-run the API curl
+- Rolling update: update `.Values.api.image.tag` and `helm upgrade ...` then:
+  - `kubectl rollout status deploy/client-stack-api`
+- HPA: generate load and show scale (requires metrics-server):
+  - `kubectl get hpa -w`
 
-If you want to build an _über-jar_, execute the following command:
+### FinOps notes
 
-```shell script
-./gradlew build -Dquarkus.package.jar.type=uber-jar
-```
+- **Requests/limits** are set for API pods (see Helm `values.yaml`) to enable bin-packing and avoid noisy-neighbor issues.
+- **HPA** scales API pods based on CPU utilization (cost scales with demand).
+- **Cost optimization opportunities (examples)**:
+  - Right-size requests/limits using observed `kubectl top pods` metrics.
+  - Use HPA + (if available) cluster autoscaler to reduce idle capacity.
+  - Use multi-stage native build + minimal runtime image to reduce runtime footprint.
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar build/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./build/client-api-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/gradle-tooling>.
-
-## Related Guides
-
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplified JPA/Hibernate data access layer with active record and repository patterns
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- Flyway ([guide](https://quarkus.io/guides/flyway)): Handle your database schema migrations
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Generate OpenAPI schemas and serve Swagger UI for REST API documentation
-- SmallRye Health ([guide](https://quarkus.io/guides/smallrye-health)): Monitor service health
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
-- SmallRye Metrics ([guide](https://quarkus.io/guides/smallrye-metrics)): Expose metrics for your services
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
-
-### SmallRye Health
-
-Monitor your application's health using SmallRye Health
-
-[Related guide section...](https://quarkus.io/guides/smallrye-health)
