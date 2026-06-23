@@ -6,7 +6,7 @@
       2. [Helm chart](https://github.com/ng-aditya/assignment-1-devfinops/tree/main/code/cd/helm/client-stack)
    2. [Dockerfile](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/code/ci/Dockerfile)
    3. [Source Code](https://github.com/ng-aditya/assignment-1-devfinops/tree/main/code/source)
-   4. [Submission doc](https://github.com/ng-aditya/assignment-1-devfinops/blob/main/docs/ASSIGNMENT_DOCUMENTATION.md)
+   4. Submission doc - this!
 2. [Entire Assignment](https://github.com/ng-aditya/assignment-1-devfinops)
 3. [Docker image](https://hub.docker.com/r/ngaditya1/ng-a1-service-api)
 4. [Service API url](http://localhost:9090/api/service/clients)
