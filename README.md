@@ -12,6 +12,8 @@
 4. [Service API url](http://localhost:9090/api/service/clients)
    1. `curl -H 'Host: client-api.local' http://localhost:9090/api/service/clients`
 
+---
+
 ## Requirement understanding
 
 Build and deploy a 2-tier system on Kubernetes:
